@@ -28,6 +28,8 @@ Class ID3Tags_Reader {
 	}
 
 	public function ReadAllTags() {
+		
+		$bytesPos = 10; //From headers
 
 		$this->_FileReader->SetMap( array(
 			"FrameID" => array(BinaryFileReader::FIXED, 4),
@@ -38,14 +40,16 @@ Class ID3Tags_Reader {
 
 		while( ($file_data = $this->_FileReader->Read()) )
 		{
-			
 			if( ! in_array( $file_data->FrameID, array_keys($GLOBALS['ID3Tags']) ) )
 				break;
 			
 			$this->_ID3Array[ $file_data->FrameID ] = array(
 					 "FullTagName" => $GLOBALS['ID3Tags'][  $file_data->FrameID ],
+					 "Position" => $bytesPos,
 					 "Body" => $file_data->Body,
-				);			
+				);
+
+			$bytesPos += 4 + 4 + 2 + $file_data->Size;		
 		}
 
 		return $this;
