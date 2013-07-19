@@ -14,6 +14,7 @@ Class ID3Tags_Reader {
 
 	private $_FileReader;
 	private $_ID3Array;
+	private $_Header;
 
 	public function __construct( $FileHandle )
 	{
@@ -24,7 +25,7 @@ Class ID3Tags_Reader {
 			"SizeTag" => array(BinaryFileReader::FIXED, 4, BinaryFileReader::INT),
 		));		
 
-		$this->_FileReader->Read();
+		$this->_Header = $this->_FileReader->Read();
 	}
 
 	public function ReadAllTags() {
