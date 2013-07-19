@@ -46,6 +46,7 @@ Class ID3Tags_Reader {
 			$this->_ID3Array[ $file_data->FrameID ] = array(
 					 "FullTagName" => $GLOBALS['ID3Tags'][  $file_data->FrameID ],
 					 "Position" => $bytesPos,
+					 "Size" => $file_data->Size,
 					 "Body" => $file_data->Body,
 				);
 
