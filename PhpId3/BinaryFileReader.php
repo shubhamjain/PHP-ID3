@@ -37,7 +37,7 @@ class BinaryFileReader
      * Datatypes to transform the read block
      */
     const INT = 5;
-    
+
     const FLOAT = 6;
 
     /**
@@ -85,18 +85,28 @@ class BinaryFileReader
         return $this;
     }
 
+    private function nullTeminated($key)
+    {
+        while ((int) bin2hex(($ch = fgetc($this->fp))) !== 0) {
+            $this->$key .= $ch;
+        }
+    }
+
+    private function eofTerminated($key)
+    {
+        while (!feof($this->fp)) {
+            $this->$key .= fgetc($this->fp);
+        }
+    }
+
     private function fillTag($tag, $key)
     {
         switch ($tag[0]) {
             case self::NULL_TERMINATED:
-                while ((int) bin2hex(($ch = fgetc($this->fp))) !== 0) {
-                    $this->$key .= $ch;
-                }
+                $this->nullTeminated($key);
                 break;
             case self::EOF_TERMINATED:
-                while (!feof($this->fp)) {
-                    $this->$key .= fgetc($this->fp);
-                }
+                $this->eofTerminated($key);
                 break;
             case self::SIZE_OF:
                 //If the variable is not an integer return false
