@@ -16,7 +16,6 @@ class BinaryFileReader
     /**
      * size of block depends upon the variable defined in the next array element.
      */
-
     const SIZE_OF = 1;
 
     /**
@@ -38,6 +37,7 @@ class BinaryFileReader
      * Datatypes to transform the read block
      */
     const INT = 5;
+    
     const FLOAT = 6;
 
     /**
@@ -74,40 +74,51 @@ class BinaryFileReader
         }
 
         foreach ($this->map as $key => $info) {
-            switch ($info[0]) {
-                case self::NULL_TERMINATED:
-                    while ((int) bin2hex(($ch = fgetc($this->fp))) !== 0) {
-                        $this->$key .= $ch;
-                    }
-                    break;
 
-                case self::EOF_TERMINATED:
-                    while (!feof($this->fp)) {
-                        $this->$key .= fgetc($this->fp);
-                    }
-                    break;
-                case self::SIZE_OF:
-                    //If the variable is not an integer return false
-                    if (!( $info[1] = $this->$info[1] )) {
-                        return false;
-                    }
-                default:
-                    //Read as string
-                    $this->$key = fread($this->fp, $info[1]);
-            }
+            $this->fillTag($info, $key);
 
             if (isset($info[2])) {
-                switch ($info[2]) {
-                    case self::INT:
-                        $this->$key = intval(bin2hex($this->$key), 16);
-                        break;
-                    case self::FLOAT:
-                        $this->$key = floatval(bin2hex($this->$key), 16);
-                        break;
-                }
+                $this->convertBinToNumeric($info[2], $key);
             }
             $this->$key = ltrim($this->$key, "\0x");
         }
         return $this;
+    }
+
+    private function fillTag($tag, $key)
+    {
+        switch ($tag[0]) {
+            case self::NULL_TERMINATED:
+                while ((int) bin2hex(($ch = fgetc($this->fp))) !== 0) {
+                    $this->$key .= $ch;
+                }
+                break;
+            case self::EOF_TERMINATED:
+                while (!feof($this->fp)) {
+                    $this->$key .= fgetc($this->fp);
+                }
+                break;
+            case self::SIZE_OF:
+                //If the variable is not an integer return false
+                if (!( $tag[1] = $this->$tag[1] )) {
+                    return false;
+                }
+            default:
+                //Read as string
+                $this->$key = fread($this->fp, $tag[1]);
+                break;
+        }
+    }
+
+    private function convertBinToNumeric($value, $key)
+    {
+        switch ($value) {
+            case self::INT:
+                $this->$key = intval(bin2hex($this->$key), 16);
+                break;
+            case self::FLOAT:
+                $this->$key = floatval(bin2hex($this->$key), 16);
+                break;
+        }
     }
 }
