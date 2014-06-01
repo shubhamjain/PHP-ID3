@@ -11,7 +11,6 @@
     "autoload": {
         "psr-0": { "PhpId3" : "" }
     },
-    "target-dir": "PhpId3",
     "require": {
         "php": ">=5.3.3"
     }
