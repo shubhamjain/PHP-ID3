@@ -16,6 +16,7 @@ class Id3TagsReader
 
     private $fileReader;
     private $id3Array;
+    private $validMp3 = TRUE;
 
     public function __construct($fileHandle)
     {
@@ -26,11 +27,20 @@ class Id3TagsReader
             "sizeTag" => array(BinaryFileReader::FIXED, 4, BinaryFileReader::INT),
         ));
 
-        $this->fileReader->read();
+        $data = $this->fileReader->read();
+
+        if( $data->id3 !== "ID3")
+        {
+            throw new \Exception("The MP3 file contains no valid ID3 Tags.");
+            $this->validMp3 = FALSE;
+        }
+
     }
 
     public function readAllTags()
     {
+        assert( $this->validMp3 === TRUE);
+
         $bytesPos = 10; //From headers
 
         $this->fileReader->setMap(array(
