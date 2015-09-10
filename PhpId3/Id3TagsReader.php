@@ -58,11 +58,22 @@ class Id3TagsReader
                 break;
             }
 
+            $body = $file_data->body;
+
+            // If frame is a text frame then we have to consider 
+            // encoding as shown in spec section 4.2
+            if( $file_data->frameId[0] === "T" )
+            {
+                // First character determines the encoding, 1 = ISO-8859-1, 0 = UTF - 16
+                if( intval(bin2hex($body[0]), 16) === 1)
+                    $body = mb_convert_encoding(substr($body, 1), 'UTF-8', 'UTF-16'); // Convert UTF-16 to UTF-8 to compatible with current browsers
+            }
+
             $this->id3Array[$file_data->frameId] = array(
                 "fullTagName" => $id3Tags[$file_data->frameId],
                 "position" => $bytesPos,
                 "size" => $file_data->size,
-                "body" => $file_data->body,
+                "body" => $body,
             );
 
             $bytesPos += 4 + 4 + 2 + $file_data->size;
