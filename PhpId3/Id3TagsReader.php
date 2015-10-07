@@ -37,30 +37,37 @@ class Id3TagsReader
 
     }
 
-    public function readAllTags()
+    /**
+     * Read only list of tags
+     *
+     * @param array $tagsToRetrieve (as ['ID3tagNameAsKey' => 'string describing ID3 tag'])
+     * @return $this
+     */
+    public function readTags($tagsToRetrieve = [])
     {
         assert( $this->validMp3 === TRUE);
 
         $bytesPos = 10; //From headers
 
         $this->fileReader->setMap(array(
-            "frameId" => array(BinaryFileReader::FIXED, 4),
-            "size" => array(BinaryFileReader::FIXED, 4, BinaryFileReader::INT),
-            "flag" => array(BinaryFileReader::FIXED, 2),
-            "body" => array(BinaryFileReader::SIZE_OF, "size"),
-        ));
+                "frameId" => array(BinaryFileReader::FIXED, 4),
+                "size" => array(BinaryFileReader::FIXED, 4, BinaryFileReader::INT),
+                "flag" => array(BinaryFileReader::FIXED, 2),
+                "body" => array(BinaryFileReader::SIZE_OF, "size"),
+            ));
 
-        $id3Tags = Id3Tags::getId3Tags();
-
+        $allTags = Id3Tags::getId3Tags();
         while (($file_data = $this->fileReader->read())) {
 
-            if (!in_array($file_data->frameId, array_keys($id3Tags))) {
+            if (!in_array($file_data->frameId, array_keys($allTags))) {
                 break;
+            } else if (!in_array($file_data->frameId, array_keys($tagsToRetrieve))) {
+                continue;
             }
 
             $body = $file_data->body;
 
-            // If frame is a text frame then we have to consider 
+            // If frame is a text frame then we have to consider
             // encoding as shown in spec section 4.2
             if( $file_data->frameId[0] === "T" )
             {
@@ -70,7 +77,7 @@ class Id3TagsReader
             }
 
             $this->id3Array[$file_data->frameId] = array(
-                "fullTagName" => $id3Tags[$file_data->frameId],
+                "fullTagName" => $allTags[$file_data->frameId],
                 "position" => $bytesPos,
                 "size" => $file_data->size,
                 "body" => $body,
@@ -79,6 +86,16 @@ class Id3TagsReader
             $bytesPos += 4 + 4 + 2 + $file_data->size;
         }
         return $this;
+    }
+
+    /**
+     * ReadAllTags is an indirection to readTags using full tags list
+     *
+     * @return Id3TagsReader
+     */
+    public function readAllTags()
+    {
+        return $this->readTags(Id3Tags::getId3Tags());
     }
 
     public function getId3Array()

@@ -26,7 +26,20 @@ class GenerateCvCommandTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(file_get_contents(__DIR__ . $this->albumCover), $image[1]);
     }
 
-    public function testGetId3TagsArray()
+    /**
+     * Test readTags with partial tag array
+     */
+    public function testGetId3TagsArrayWithPartialArray()
+    {
+        $id3 = new Id3TagsReader(fopen(__DIR__ . $this->mp3File, "rb"));
+        $id3->readTags(array_flip(["TIT2"]));
+        $id3Tags = $id3->getId3Array();
+
+        $this->assertEquals($id3Tags["TIT2"]["body"], 'Piranha');
+        $this->assertCount(1, $id3Tags);
+    }
+
+    public function testGetId3TagsArrayWithCompleteArray()
     {
         $id3Tags = $this->id3->getId3Array();
 
